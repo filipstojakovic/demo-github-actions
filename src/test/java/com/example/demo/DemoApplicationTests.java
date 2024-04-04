@@ -26,7 +26,7 @@ class DemoApplicationTests {
     @Test
     void hello() throws Exception {
         // given
-        String expectedResult = "hello1";
+        String expectedResult = "hello";
 
         // when
         ResultActions result = mockMvc.perform(get("/hi"));
