@@ -81,7 +81,5 @@ jobs:
             emoji=":x:"
           fi
           curl -X POST -H 'Content-type: application/json' \
-            --data "{"text":"Job finished with status: $emoji ${{ job.status }}"}" \
-            ${{ secrets.SLACK_WEBHOOK_URL }}
-
-
+            --data "{\"text\":\"Job finished with status: $emoji ${{ job.status }}\"}" \
+            "${{ secrets.SLACK_WEBHOOK_URL }}"
