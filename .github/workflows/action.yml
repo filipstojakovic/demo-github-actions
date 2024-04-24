@@ -2,6 +2,7 @@
 name: Testing Actions
 
 on:
+ workflow_dispatch: # add option for manuel workflow trigger
   push:
     branches:
       - master
@@ -13,8 +14,20 @@ jobs:
   run-tests:
     runs-on: self-hosted
     steps:
+      - name: Slack commit message and sha
+        run: >
+          curl -X POST -H 'Content-type: application/json'
+          --data '{"text":"Push detected :github: https://github.com/amigoscode/spring-boot-full-stack/commit/${{ github.sha }} - ${{ github.event.head_commit.message }}"}' 
+          ${{ secrets.SLACK_WEBHOOK_URL }}
+
       - name: Main checkout
         uses: actions/checkout@v4
+
+      - name: Send Slack Message
+        run: >
+          curl -X POST -H 'Content-type: application/json'
+          --data '{"text":"Deployment started :progress_bar: :fingerscrossed:"}' 
+          ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Setup java
         uses: actions/setup-java@v4
@@ -27,13 +40,24 @@ jobs:
         with:
           maven-version: 3.8.2
 
+      - name: Send Slack Message
+        run: >
+          curl -X POST -H 'Content-type: application/json' 
+          --data '{"text":":maven: Building with Maven"}' 
+          ${{ secrets.SLACK_WEBHOOK_URL }}
+
       - name: Run test and build
         run: mvn clean install
 
 #      - name: Set up Docker Buildx
 #        uses: docker/setup-buildx-action@v3
+      - name: Send Slack Message
+        run: >
+          curl -X POST -H 'Content-type: application/json' 
+          --data '{"text":":docker: Building and Push to DockerHub"}' 
+          ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      - name: Build Docker Image
+      - name: Build and Push Docker Image
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
           image: filipstojakovic/demo-app
@@ -42,5 +66,17 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Send Slack Message
+        run: >
+          curl -X POST -H 'Content-type: application/json' 
+          --data '{"text":":docker: Image pushed to https://hub.docker.com/repository/docker/filipstojakovic/demo-app"}' 
+          ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Send Slack Message
+        if: always() # run this step no matter what
+        run: >
+          curl -X POST -H 'Content-type: application/json' 
+          --data '{"text":"Job finished with status: ${{ job.status }}"}' 
+          ${{ secrets.SLACK_WEBHOOK_URL }}
 
 
