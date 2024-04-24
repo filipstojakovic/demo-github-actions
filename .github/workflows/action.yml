@@ -2,7 +2,7 @@
 name: Testing Actions
 
 on:
- workflow_dispatch: # add option for manuel workflow trigger
+ #workflow_dispatch: # add option for manuel workflow trigger
   push:
     branches:
       - master
@@ -17,7 +17,7 @@ jobs:
       - name: Slack commit message and sha
         run: >
           curl -X POST -H 'Content-type: application/json'
-          --data '{"text":"Push detected :github: https://github.com/amigoscode/spring-boot-full-stack/commit/${{ github.sha }} - ${{ github.event.head_commit.message }}"}' 
+          --data '{"text":"Push detected :github: https://github.com/filipstojakovic/github-actions-demo/commit/${{ github.sha }} - ${{ github.event.head_commit.message }}"}' 
           ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Main checkout
@@ -74,9 +74,14 @@ jobs:
 
       - name: Send Slack Message
         if: always() # run this step no matter what
-        run: >
-          curl -X POST -H 'Content-type: application/json' 
-          --data '{"text":"Job finished with status: ${{ job.status }}"}' 
-          ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            emoji=":white_check_mark:"
+          else
+            emoji=":x:"
+          fi
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{"text":"Job finished with status: $emoji ${{ job.status }}"}" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
 
 
